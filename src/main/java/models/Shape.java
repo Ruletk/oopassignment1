@@ -1,34 +1,37 @@
 package models;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Shape {
-    private final List<Point> points = new ArrayList<>();
+    private final List<Point> points = new LinkedList<>();
 
 
-    /*
-    * Adds a new point to the list.
-    * If the list of points is empty, the new point will be added to the start of the list.
-    * Otherwise, point will be added between the two closest points.
-    *
-    * @param newPoint Point to be added to the list.
+    /**
+     * Adds a new point to the list.
+     * If the list of points is empty, the new point will be added to the start of the list.
+     * Otherwise, point will be added between the two closest points.
+     *
+     * @param newPoint Point to be added to the list.
      */
     public void addPoint(Point newPoint) {
+        if (points.isEmpty()) {
+            points.add(newPoint);
+            return;
+        }
+
         int closestIndex = 0;
         double closestDistance = Double.POSITIVE_INFINITY;
-        for (int i = 0; i < points.size(); i++) {
-            double d1 = newPoint.getDistanceTo(points.get(i));
-            double d2 = points.size() - 1 == i ?
-                    newPoint.getDistanceTo(points.get(0)) :
-                    newPoint.getDistanceTo(points.get(i + 1));
-            if (d1 + d2 < closestDistance) {
-                closestDistance = d1 + d2;
+        int size = points.size();
+        for (int i = 0; i < size; i++) {
+            double distance = newPoint.getDistanceTo(points.get(i)) + newPoint.getDistanceTo(points.get((i + 1) % size));
+            if (distance < closestDistance) {
+                closestDistance = distance;
                 closestIndex = i;
             }
         }
-        if (points.isEmpty()) points.add(newPoint);
-        else points.add(closestIndex + 1, newPoint);
+
+        points.add(closestIndex + 1, newPoint);
     }
 
 
@@ -39,9 +42,9 @@ public class Shape {
      */
     public double getPerimeter() {
         int count = points.size();
-        double perimeter = points.get(0).getDistanceTo(points.get(count - 1));
-        for (int i = 0; i < count - 1; i++)
-            perimeter += points.get(i).getDistanceTo(points.get(i + 1));
+        double perimeter = 0;
+        for (int i = 0; i < count; i++)
+            perimeter += points.get(i).getDistanceTo(points.get((i + 1) % count));
         return perimeter;
     }
 
@@ -55,8 +58,9 @@ public class Shape {
      */
     public double getAverageSide() {
         int count = points.size();
+        if (count <= 1) return 0;
         if (count == 2) return getPerimeter();
-        return count <= 1 ? 0 : getPerimeter() / count;
+        return getPerimeter() / count;
     }
 
     /**
@@ -66,8 +70,9 @@ public class Shape {
      */
     public double getLongestSide() {
         double mx = 0;
-        for (int i = 0; i < points.size() - 1; i++)
-            mx = Math.max(points.get(i).getDistanceTo(points.get(i + 1)), mx);
+        int size = points.size();
+        for (int i = 0; i < size; i++)
+            mx = Math.max(points.get(i).getDistanceTo(points.get((i + 1) % size)), mx);
         return mx;
     }
 }
